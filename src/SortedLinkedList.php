@@ -2,8 +2,9 @@
 
 /**
  * @template T of int|string
- */
-class SortedLinkedList
+ * @implements IteratorAggregate<int, T>
+*/
+final class SortedLinkedList implements IteratorAggregate, Countable
 {
     /** @var callable(T, T): int */
     private $comparator;
@@ -19,6 +20,16 @@ class SortedLinkedList
     public function __construct(callable $comparator)
     {
         $this->comparator = $comparator;
+    }
+
+    public static function forInts(): self
+    {
+        return new self(fn(int $a, int $b): int => $a <=> $b);
+    }
+
+    public static function forStrings(): self
+    {
+        return new self(fn(string $a, string $b): int => strcmp($a, $b));
     }
 
     /**
@@ -92,8 +103,14 @@ class SortedLinkedList
         $current = $this->head;
 
         while ($current !== null) {
-            if (($this->comparator)($value, $current->value) === 0) {
+            $cmp = ($this->comparator)($value, $current->value);
+
+            if ($cmp === 0) {
                 return true;
+            }
+
+            if ($cmp < 0) {
+                return false; // early exit thanks to sorting
             }
             $current = $current->next;
         }
@@ -117,22 +134,36 @@ class SortedLinkedList
         return $result;
     }
 
-    public function size(): int
+    public function count(): int
     {
         return $this->size;
+    }
+
+    /**
+     * @return Traversable<int, T>
+     */
+    public function getIterator(): Traversable
+    {
+        $current = $this->head;
+
+        while ($current !== null) {
+            yield $current->value;
+            $current = $current->next;
+        }
     }
 }
 
 /**
  * @template T
+ * @internal
  */
-class Node
+final class Node
 {
     /** @var T */
-    public $value;
+    public mixed $value;
 
     /** @var Node<T>|null */
-    public ?Node $next = null;
+    public ?self $next = null;
 
     /**
      * @param T $value

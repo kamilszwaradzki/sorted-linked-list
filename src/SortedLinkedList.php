@@ -151,6 +151,31 @@ final class SortedLinkedList implements IteratorAggregate, Countable
             $current = $current->next;
         }
     }
+
+    /**
+     * @return T|null
+     */
+    public function first()
+    {
+        return $this->head?->value;
+    }
+
+    /**
+     * @return T|null
+     */
+    public function last()
+    {
+        if ($this->head === null) {
+            return null;
+        }
+
+        $current = $this->head;
+        while ($current->next !== null) {
+            $current = $current->next;
+        }
+        
+        return $current->value;
+    }
 }
 
 /**
